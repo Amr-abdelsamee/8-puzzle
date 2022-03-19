@@ -1,15 +1,16 @@
 import pygame
 
 class block:
-    def __init__(self, x_pos, y_pos, color, text, position, text_color, FONT, width, height):
+    def __init__(self, x_pos, y_pos, color, label, position, text_color, FONT, width, height):
         self.x_pos = x_pos
         self.y_pos = y_pos
         self.color = color
-        self.text_in = text
+        if label == 0:self.label = ""
+        else:self.label = str(label)
         self.position = position
         self.text_color = text_color
         
-        self.text = FONT.render(self.text_in, True, self.text_color)
+        self.text = FONT.render(self.label, True, self.text_color)
         self.width = width
         self.height = height
         
@@ -25,5 +26,9 @@ class block:
         and y_clicked >= self.y_pos
         and y_clicked < self.y_pos + self.height):
             return True
+        
+    def get_label(self):
+        return self.label
+    
     def get_position(self):
         return self.position
