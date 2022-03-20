@@ -20,8 +20,9 @@ class block:
         # screen.blit(self.text, (self.x_pos+int(self.size/2), self.y_pos+int(self.size/2)))
         screen.blit(self.text, (self.x_pos, self.y_pos))
     
-    def update(self,):
+    def update(self,screen):
         self.rect = pygame.Rect(self.x_pos, self.y_pos, self.width, self.height)
+        self.draw(screen)
 
     def check_clicked(self, x_clicked , y_clicked):
         if( x_clicked >= self.x_pos 
