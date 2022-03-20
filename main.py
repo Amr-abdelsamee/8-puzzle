@@ -3,6 +3,7 @@ import pygame
 from blocks import block
 import math
 import random
+from copy import copy
 def main_menu():
     while True:
         pass
@@ -45,8 +46,10 @@ screen.fill(WHITE)
 x = SIDES_PADDING
 y = UPPER_PADDING
 
-
+# array to store the blocks
 blocks = []
+# array to store the steps taken while solving the puzzle
+states = []
 
 labels = random.sample(range(NUM_BLOCKS), NUM_BLOCKS)
 position = 0
@@ -60,11 +63,14 @@ for i in range(0, NUM_ROW_COL):
         # storing the index of the empty block index
         if labels[position]==0: 
             empty_block_index = position 
-            print(empty_block_index)
         x = x + BLOCK_WIDTH + INBTWN_SPACE
         position += 1
     x = SIDES_PADDING
     y = y + BLOCK_HEIGHT + INBTWN_SPACE
+
+#initial state is added
+states.append(copy(blocks))
+
 
 def exchange(clicked_index):
     global  empty_block_index
@@ -88,9 +94,8 @@ def exchange(clicked_index):
     temp = blocks[clicked_index]
     blocks[clicked_index] = blocks[empty_block_index]
     blocks[empty_block_index] = temp
-    
+    states.append(copy(blocks))
     empty_block_index = clicked_index
-
 
 def check_empty_near(clicked_index):
     # check if in upper left corners
@@ -145,16 +150,19 @@ def check_empty_near(clicked_index):
         or not blocks[clicked_index - NUM_ROW_COL].get_label()):
             exchange(clicked_index)
 
+def show_steps():
+    for i in range(len(states)):
+        for j in range(len(blocks)):
+            print(states[i][j].get_label(), end =" ")
+        print("\n")
 
 # running loop
 running = True
 while running:
-    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            
             x_clicked,y_clicked = pygame.mouse.get_pos()
             for i in range(len(blocks)):
                 
@@ -163,9 +171,11 @@ while running:
                         continue
                     clicked_index = i
                     check_empty_near(i)
-                    print("clicked inedx: "+str(clicked_index))
-                    print(pygame.mouse.get_pos())
-                    print("get_label: "+str(blocks[i].get_label())+"\n")
+                    print("Mouse position: " + str(pygame.mouse.get_pos()))
+                    print("inedx: "+str(clicked_index))
+                    print("label: "+str(blocks[i].get_label()))
+                    print("empty block index: "+str(empty_block_index)+"\n")
+                    show_steps()
         
         pygame.display.update()
 
