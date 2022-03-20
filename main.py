@@ -22,7 +22,6 @@ LOWER_PADDING = 20
 INBTWN_SPACE = 1
 NUM_BLOCKS = 9
 NUM_ROW_COL = int(math.sqrt(NUM_BLOCKS))
-
 BLOCK_WIDTH = (SCREEN_WIDTH - (2*SIDES_PADDING) - (NUM_ROW_COL*INBTWN_SPACE-1)) / NUM_ROW_COL
 BLOCK_HEIGHT = (SCREEN_WIDTH - UPPER_PADDING - LOWER_PADDING - (NUM_ROW_COL*INBTWN_SPACE-1)) / NUM_ROW_COL
 BLOCK_COLOR = RED
@@ -47,13 +46,14 @@ blocks = []
 # array to store the steps taken while solving the puzzle
 states = []
 
-
+labels = 0
 empty_block_index = 0
 
 def create_rect():
     #initial cordinates of the first block
     x = SIDES_PADDING
     y = UPPER_PADDING
+    global labels
     labels = random.sample(range(NUM_BLOCKS), NUM_BLOCKS)
     position = 0
     global empty_block_index
@@ -116,29 +116,29 @@ def check_empty_near(clicked_index):
         if( not blocks[clicked_index - 1].get_label()
         or not blocks[clicked_index - NUM_ROW_COL].get_label()):
             exchange(clicked_index)
-    # check if the clicked block is in first row
+    # check if in first row
     elif clicked_index < NUM_ROW_COL:
         if( not blocks[clicked_index + 1].get_label()
         or not blocks[clicked_index - 1].get_label()
         or not blocks[clicked_index + NUM_ROW_COL].get_label()):
             exchange(clicked_index)
-    # check if the clicked block is in last row
+    # check if in last row
     elif clicked_index >= len(blocks) - NUM_ROW_COL:
         if( not blocks[clicked_index + 1].get_label()
         or not blocks[clicked_index - 1].get_label()
         or not blocks[clicked_index - NUM_ROW_COL].get_label()):
             exchange(clicked_index)
-    # check if the clicked block is in first col
-    elif clicked_index % NUM_ROW_COL == 0 and clicked_index < NUM_ROW_COL:
-        if( not blocks[clicked_index + 1].get_label()
-        or not blocks[clicked_index - 1].get_label()
+    # check if the in first cols
+    elif clicked_index % NUM_ROW_COL == 0:
+        if( not blocks[clicked_index - NUM_ROW_COL].get_label()
+        or not blocks[clicked_index + 1].get_label()
         or not blocks[clicked_index + NUM_ROW_COL].get_label()):
             exchange(clicked_index)
-    # check if the clicked block is in last col
-    elif clicked_index + 1 % NUM_ROW_COL == 0 and clicked_index < NUM_ROW_COL:
-        if( not blocks[clicked_index + 1].get_label()
+    # check if in last col
+    elif (clicked_index + 1) % NUM_ROW_COL == 0:
+        if( not blocks[clicked_index - NUM_ROW_COL].get_label()
         or not blocks[clicked_index - 1].get_label()
-        or not blocks[clicked_index - NUM_ROW_COL].get_label()):
+        or not blocks[clicked_index + NUM_ROW_COL].get_label()):
             exchange(clicked_index)
     # any other place in the middle
     else:
@@ -154,9 +154,35 @@ def show_steps():
             print(states[i][j].get_label(), end =" ")
         print("\n")
 
+def check_solved():
+    solved = True
+    for i in range(len(blocks)):
+        # print(str(blocks[i].get_label())+"_comp1_"+str(solution1[i]))
+        if blocks[i].get_label() != solution1[i]:
+            solved = False
+    if solved: return solved
+    solved = True
+    for i in range(len(blocks)):
+        # print(str(blocks[i].get_label())+"_comp2_"+str(solution2[i]))
+        if blocks[i].get_label() != solution2[i]:
+            solved = False
+    return solved
+
 create_rect()
 #initial state is added
 states.append(copy(blocks))
+
+#solution
+solution1 = copy(labels) 
+solution1.sort()
+solution1 = list(map(str, solution1))
+solution1[0] = ""
+print(solution1)
+
+solution2 = copy(solution1) 
+solution2.pop(0)
+solution2.append("")
+print(solution2)
 
 # running loop
 running = True
@@ -178,6 +204,7 @@ while running:
                     print("label: " + str(blocks[i].get_label()))
                     print("empty block index: " + str(empty_block_index)+"\n")
                     show_steps()
+                    print("solved: " + str(check_solved()))
         pygame.display.update()
 
 pygame.quit()
