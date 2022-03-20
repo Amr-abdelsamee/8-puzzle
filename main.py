@@ -46,10 +46,11 @@ blocks = []
 # array to store the steps taken while solving the puzzle
 states = []
 
-labels = 0
+#initial values
+labels = []
 empty_block_index = 0
 
-def create_rect():
+def create_rects():
     #initial cordinates of the first block
     x = SIDES_PADDING
     y = UPPER_PADDING
@@ -69,31 +70,6 @@ def create_rect():
             position += 1
         x = SIDES_PADDING
         y = y + BLOCK_HEIGHT + INBTWN_SPACE
-
-def exchange(clicked_index):
-    global  empty_block_index
-    motion_speed = 1
-    
-    old_x = blocks[clicked_index].get_x_pos()
-    new_x = blocks[empty_block_index].get_x_pos()
-    old_y = blocks[clicked_index].get_y_pos()
-    new_y = blocks[empty_block_index].get_y_pos()
-
-    blocks[clicked_index].set_x_pos(new_x)
-    blocks[clicked_index].set_y_pos(new_y)
-    blocks[clicked_index].update()
-    blocks[clicked_index].draw(screen)
-
-    blocks[empty_block_index].set_x_pos(old_x)
-    blocks[empty_block_index].set_y_pos(old_y)
-    blocks[empty_block_index].update()
-    blocks[empty_block_index].draw(screen)
-
-    temp = blocks[clicked_index]
-    blocks[clicked_index] = blocks[empty_block_index]
-    blocks[empty_block_index] = temp
-    states.append(copy(blocks))
-    empty_block_index = clicked_index
 
 def check_empty_near(clicked_index):
     # check if in upper left corners
@@ -148,11 +124,33 @@ def check_empty_near(clicked_index):
         or not blocks[clicked_index - NUM_ROW_COL].get_label()):
             exchange(clicked_index)
 
-def show_steps():
-    for i in range(len(states)):
-        for j in range(len(blocks)):
-            print(states[i][j].get_label(), end =" ")
-        print("\n")
+def exchange(clicked_index):
+
+    global  empty_block_index
+    
+    old_x = blocks[clicked_index].get_x_pos()
+    new_x = blocks[empty_block_index].get_x_pos()
+    old_y = blocks[clicked_index].get_y_pos()
+    new_y = blocks[empty_block_index].get_y_pos()
+
+    blocks[clicked_index].set_x_pos(new_x)
+    blocks[clicked_index].set_y_pos(new_y)
+    blocks[clicked_index].update(screen)
+
+    blocks[empty_block_index].set_x_pos(old_x)
+    blocks[empty_block_index].set_y_pos(old_y)
+    blocks[empty_block_index].update(screen)
+
+    temp = blocks[clicked_index]
+    blocks[clicked_index] = blocks[empty_block_index]
+    blocks[empty_block_index] = temp
+
+    #update the states
+    states.append(copy(blocks))
+    #set the new index of the empty block
+    empty_block_index = clicked_index
+
+    print_info()
 
 def check_solved():
     solved = True
@@ -168,21 +166,33 @@ def check_solved():
             solved = False
     return solved
 
-create_rect()
+def show_steps():
+    print("moves record:")
+    for i in range(len(states)):
+        for j in range(len(blocks)):
+            print(states[i][j].get_label(), end =" ")
+        print()
+
+def print_info():
+    show_steps()
+    print("solved: " + str(check_solved()))
+
+
+create_rects()
 #initial state is added
 states.append(copy(blocks))
 
-#solution
+#solutions
+# solution1 if the empty block is the first one
 solution1 = copy(labels) 
 solution1.sort()
 solution1 = list(map(str, solution1))
 solution1[0] = ""
-print(solution1)
-
+# solution2 if the empty block is the last one
 solution2 = copy(solution1) 
 solution2.pop(0)
 solution2.append("")
-print(solution2)
+
 
 # running loop
 running = True
@@ -197,14 +207,7 @@ while running:
                 if blocks[i].check_clicked(x_clicked, y_clicked):
                     if not blocks[i].get_label():
                         continue
-                    clicked_index = i
                     check_empty_near(i)
-                    print("Mouse position: " + str(pygame.mouse.get_pos()))
-                    print("inedx: " + str(clicked_index))
-                    print("label: " + str(blocks[i].get_label()))
-                    print("empty block index: " + str(empty_block_index)+"\n")
-                    show_steps()
-                    print("solved: " + str(check_solved()))
         pygame.display.update()
 
 pygame.quit()
