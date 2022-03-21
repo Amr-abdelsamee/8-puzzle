@@ -10,7 +10,7 @@ def main_menu():
 
 # initializing the pygame
 pygame.init()
-SCREEN_WIDTH = 600
+SCREEN_WIDTH = 600 # minimum width should be 250
 SCREEN_HEIGHT = SCREEN_WIDTH
 
 RED = (255,0,0)
@@ -31,7 +31,6 @@ FONT = pygame.font.SysFont('cambria', FONT_SIZE)
 #create the screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
-
 #title & logo
 pygame.display.set_caption("8-puzzle")
 icon = pygame.image.load('D:\programming\python\workspace\8-puzzle\src\logo.png')
@@ -39,7 +38,6 @@ pygame.display.set_icon(icon)
 
 #background color
 screen.fill(WHITE)
-
 
 # array to store the blocks
 blocks = []
@@ -182,7 +180,7 @@ create_rects()
 #initial state is added
 states.append(copy(blocks))
 
-#solutions
+# solutions
 # solution1 if the empty block is the first one
 solution1 = copy(labels) 
 solution1.sort()
@@ -211,17 +209,3 @@ while running:
         pygame.display.update()
 
 pygame.quit()
-
-
-
-
-
-
-
-
-
-
-
-
-
-

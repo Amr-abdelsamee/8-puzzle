@@ -14,7 +14,6 @@ class block:
         self.rect = pygame.Rect(self.x_pos, self.y_pos, self.width, self.height)
         self.text = FONT.render(self.label, True, self.text_color)
         
-        
     def draw(self, screen):
         pygame.draw.rect(screen, self.color, self.rect)
         # screen.blit(self.text, (self.x_pos+int(self.size/2), self.y_pos+int(self.size/2)))
