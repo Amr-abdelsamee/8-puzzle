@@ -49,6 +49,7 @@ states = []
 #initial values
 labels = []
 empty_block_index = 0
+valid_moves = []
 
 def create_rects():
     #initial cordinates of the first block
@@ -71,58 +72,70 @@ def create_rects():
         x = SIDES_PADDING
         y = y + BLOCK_HEIGHT + INBTWN_SPACE
 
-def check_empty_near(clicked_index):
+def valid_moves_generator():
+    one_block_moves = []
+    for i in range(0, NUM_BLOCKS):
+        # one_block_moves = get_neighbors_index(i)
+        one_block_moves = get_neighbors_index(i)
+        valid_moves.append(one_block_moves)
+
+def get_neighbors_index(index):
+    neighbors_indexs = []
     # check if in upper left corners
-    if clicked_index % NUM_ROW_COL == 0 and clicked_index < NUM_ROW_COL:
-        if( not blocks[clicked_index + 1].get_label()
-        or not blocks[clicked_index + NUM_ROW_COL].get_label()):
-            exchange(clicked_index)
+    if index == 0:
+        neighbors_indexs.append(index + 1)
+        neighbors_indexs.append(index + NUM_ROW_COL)
+
     # check if in upper right corners
-    elif (clicked_index + 1) % NUM_ROW_COL == 0 and clicked_index < NUM_ROW_COL:
-        if( not blocks[clicked_index - 1].get_label()
-        or not blocks[clicked_index + NUM_ROW_COL].get_label()):
-            exchange(clicked_index)
+    elif index == (NUM_ROW_COL-1):
+        neighbors_indexs.append(index - 1)
+        neighbors_indexs.append(index + NUM_ROW_COL)
+
     # check if in lower left corners
-    elif clicked_index % NUM_ROW_COL == 0 and clicked_index >= len(blocks) - NUM_ROW_COL:
-        if( not blocks[clicked_index + 1].get_label()
-        or not blocks[clicked_index - NUM_ROW_COL].get_label()):
-            exchange(clicked_index)
+    elif index == (NUM_ROW_COL**2 - NUM_ROW_COL):
+        neighbors_indexs.append(index - NUM_ROW_COL)
+        neighbors_indexs.append(index + 1)
+
     # check if in lower right corners
-    elif (clicked_index + 1) % NUM_ROW_COL == 0 and clicked_index >= len(blocks) - NUM_ROW_COL:
-        if( not blocks[clicked_index - 1].get_label()
-        or not blocks[clicked_index - NUM_ROW_COL].get_label()):
-            exchange(clicked_index)
+    elif index == (NUM_ROW_COL**2 - 1):
+        neighbors_indexs.append(index - NUM_ROW_COL)
+        neighbors_indexs.append(index - 1)
+
     # check if in first row
-    elif clicked_index < NUM_ROW_COL:
-        if( not blocks[clicked_index + 1].get_label()
-        or not blocks[clicked_index - 1].get_label()
-        or not blocks[clicked_index + NUM_ROW_COL].get_label()):
-            exchange(clicked_index)
+    elif index < NUM_ROW_COL:
+        neighbors_indexs.append(index - 1)
+        neighbors_indexs.append(index + 1)
+        neighbors_indexs.append(index + NUM_ROW_COL)
+
     # check if in last row
-    elif clicked_index >= len(blocks) - NUM_ROW_COL:
-        if( not blocks[clicked_index + 1].get_label()
-        or not blocks[clicked_index - 1].get_label()
-        or not blocks[clicked_index - NUM_ROW_COL].get_label()):
-            exchange(clicked_index)
+    elif index >= len(blocks) - NUM_ROW_COL:
+        neighbors_indexs.append(index - 1)
+        neighbors_indexs.append(index + 1)
+        neighbors_indexs.append(index - NUM_ROW_COL)
+
     # check if the in first cols
-    elif clicked_index % NUM_ROW_COL == 0:
-        if( not blocks[clicked_index - NUM_ROW_COL].get_label()
-        or not blocks[clicked_index + 1].get_label()
-        or not blocks[clicked_index + NUM_ROW_COL].get_label()):
-            exchange(clicked_index)
+    elif index % NUM_ROW_COL == 0:
+        neighbors_indexs.append(index - NUM_ROW_COL)
+        neighbors_indexs.append(index + 1)
+        neighbors_indexs.append(index + NUM_ROW_COL)
+    
     # check if in last col
-    elif (clicked_index + 1) % NUM_ROW_COL == 0:
-        if( not blocks[clicked_index - NUM_ROW_COL].get_label()
-        or not blocks[clicked_index - 1].get_label()
-        or not blocks[clicked_index + NUM_ROW_COL].get_label()):
-            exchange(clicked_index)
+    elif (index + 1) % NUM_ROW_COL == 0:
+        neighbors_indexs.append(index - NUM_ROW_COL)
+        neighbors_indexs.append(index - 1)
+        neighbors_indexs.append(index + NUM_ROW_COL)
+
     # any other place in the middle
     else:
-        if( not blocks[clicked_index + 1].get_label()
-        or not blocks[clicked_index - 1].get_label()
-        or not blocks[clicked_index + NUM_ROW_COL].get_label()
-        or not blocks[clicked_index - NUM_ROW_COL].get_label()):
-            exchange(clicked_index)
+        neighbors_indexs.append(index - NUM_ROW_COL)
+        neighbors_indexs.append(index - 1)
+        neighbors_indexs.append(index + 1)
+        neighbors_indexs.append(index + NUM_ROW_COL)
+    return(copy(neighbors_indexs))
+
+def check_empty_near(clicked_index):
+    if empty_block_index in valid_moves[clicked_index]:
+        exchange(clicked_index)
 
 def exchange(clicked_index):
 
@@ -179,6 +192,7 @@ def print_info():
 
 
 create_rects()
+valid_moves_generator()
 #initial state is added
 states.append(copy(blocks))
 
@@ -207,7 +221,9 @@ while running:
                 if blocks[i].check_clicked(x_clicked, y_clicked):
                     if not blocks[i].get_label():
                         continue
+                    # check_empty_near(i)
                     check_empty_near(i)
+                    # print(valid_moves)
         pygame.display.update()
 
 pygame.quit()
