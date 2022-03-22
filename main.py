@@ -1,6 +1,7 @@
 import math
 import pygame
 from blocks import block
+from agents import BFS
 import math
 import random
 from copy import copy
@@ -191,6 +192,7 @@ def print_info():
     print("solved: " + str(check_solved()))
 
 
+
 create_rects()
 valid_moves_generator()
 #initial state is added
@@ -214,6 +216,8 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+
         if event.type == pygame.MOUSEBUTTONDOWN:
             x_clicked,y_clicked = pygame.mouse.get_pos()
             for i in range(len(blocks)):
