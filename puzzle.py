@@ -5,6 +5,7 @@ import random
 import numpy as np
 import time
 from blocks import block
+
 SCREEN_WIDTH = 700
 SCREEN_HEIGHT = SCREEN_WIDTH
 SIDES_PADDING = 10
@@ -12,11 +13,9 @@ UPPER_PADDING = 100
 LOWER_PADDING = 20
 INBTWN_SPACE = 1
 
-
 RED = (255, 0, 0)
 WHITE = (255, 255, 255)
 BLOCK_COLOR = RED
-
 
 
 class Puzzle:
@@ -29,14 +28,16 @@ class Puzzle:
         self.empty_block_index = 0
         self.num_blocks = num_blocks
         self.num_row_col = int(math.sqrt(self.num_blocks))
-        self.valid_moves = [] 
-        self.create_rects()
+        self.valid_moves = []
         self.states.append(copy(self.blocks))
         self.valid_moves_generator()
-        self.BLOCK_WIDTH = (SCREEN_WIDTH - (2 * SIDES_PADDING) - (self.num_row_col * INBTWN_SPACE - 1)) / self.num_row_col
-        self.BLOCK_HEIGHT = (SCREEN_WIDTH - UPPER_PADDING - LOWER_PADDING - (self.num_row_col * INBTWN_SPACE - 1)) / self.num_row_col
+        self.BLOCK_WIDTH = (SCREEN_WIDTH - (2 * SIDES_PADDING) - (
+                    self.num_row_col * INBTWN_SPACE - 1)) / self.num_row_col
+        self.BLOCK_HEIGHT = (SCREEN_WIDTH - UPPER_PADDING - LOWER_PADDING - (
+                    self.num_row_col * INBTWN_SPACE - 1)) / self.num_row_col
         self.FONT_SIZE = int(0.5 * self.BLOCK_WIDTH)
         self.FONT = pygame.font.SysFont('cambria', self.FONT_SIZE)
+        self.create_rects()
 
     def create_rects(self):
         # initial cordinates of the first block
@@ -50,10 +51,10 @@ class Puzzle:
 
         self.empty_block_index = self.get_zero(self.labels)
 
-
-        for i in range(0, self.num_row_col):
-            for j in range(0, self.num_row_col):
-                rec = block(x, y, BLOCK_COLOR, self.labels[position], position, WHITE, self.FONT, self.BLOCK_WIDTH, self.BLOCK_HEIGHT)
+        for _ in range(0, self.num_row_col):
+            for _ in range(0, self.num_row_col):
+                rec = block(x, y, BLOCK_COLOR, self.labels[position], position, WHITE, self.FONT, self.BLOCK_WIDTH,
+                            self.BLOCK_HEIGHT)
                 rec.draw(self.screen)
                 self.blocks.append(rec)
                 x = x + self.BLOCK_WIDTH + INBTWN_SPACE
@@ -61,14 +62,12 @@ class Puzzle:
             x = SIDES_PADDING
             y = y + self.BLOCK_HEIGHT + INBTWN_SPACE
 
-
     def valid_moves_generator(self):
         one_block_moves = []
         for i in range(0, self.num_blocks):
             # one_block_moves = get_neighbors_index(i)
             one_block_moves = self.get_neighbors_index(i)
             self.valid_moves.append(one_block_moves)
-
 
     def get_neighbors_index(self, index):
         neighbors_indexs = []
@@ -123,14 +122,12 @@ class Puzzle:
             neighbors_indexs.append(index + self.num_row_col)
         return neighbors_indexs
 
-
-    def check_empty_near(self,clicked_index):
-        if empty_block_index in self.valid_moves[clicked_index]:
+    def check_empty_near(self, clicked_index):
+        if self.empty_block_index in self.valid_moves[clicked_index]:
             self.exchange(clicked_index)
 
-
-    def exchange(self,clicked_index):
-        global empty_block_index
+    def exchange(self, clicked_index):
+        empty_block_index = self.empty_block_index
 
         old_x = self.blocks[clicked_index].get_x_pos()
         new_x = self.blocks[empty_block_index].get_x_pos()
@@ -154,7 +151,6 @@ class Puzzle:
         # set the new index of the empty block
         self.empty_block_index = clicked_index
 
-
     def check_solved(self):
         solved = True
         for i in range(len(self.blocks)):
@@ -169,14 +165,12 @@ class Puzzle:
                 solved = False
         return solved
 
-
     def show_steps(self):
         print("moves record:")
         for i in range(len(self.states)):
             for j in range(len(self.blocks)):
                 print(self.states[i][j].get_label(), end=" ")
             print()
-
 
     def getInvCount(self, arr):
         inversions = 0
@@ -187,19 +181,15 @@ class Puzzle:
                     inversions += 1
         return inversions
 
-
     def solvable(self, array):
         inversions = self.getInvCount(array)
         return inversions % 2 == 0
 
-
-    def get_zero(self,array):
+    def get_zero(self, array):
         for i in range(len(array)):
             if array[i] == 0:
                 return i
         return -1
-
-
 
     def show_solution(self, moves, delay, path):
         for move in range(moves):
@@ -209,8 +199,7 @@ class Puzzle:
             pygame.display.update()
             time.sleep(delay)
 
-
-    def string_to_int(self,array):
+    def string_to_int(self, array):
         array = list(array)
         array = ' '.join(array)
         array = np.fromstring(array, dtype=int, sep=' ')

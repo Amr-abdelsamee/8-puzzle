@@ -1,15 +1,43 @@
 import numpy as np
+import random
+from collections import deque
+
+
+class hashmap:
+    def __init__(self, size) -> None:
+        self.size = size
+        self.hash_table = self.create_table()
+
+    def create_table(self):
+        return [[] for _ in range(self.size)]
+
+    def Hashing(self, keyvalue):
+        return keyvalue % self.size
+
+    def insert(self, value):
+        hash_key = self.Hashing(value)
+        self.hash_table[hash_key].append(value)
+
+    def search(self, val):
+        hash_key = self.Hashing(val)
+        for i in self.hash_table[hash_key]:
+            if i == val:
+                return True
+        return False
 
 
 class Node:
-    def __init__(self, parent, index, state):
+    def __init__(self, parent, index, state, empty_index, cost=0, current_cost=0, depth=0):
         self.state = state
         self.parent = parent
         self.index = index
+        self.empty_index = empty_index
+        self.cost = cost
+        self.current_cost = current_cost
+        self.depth = depth
 
 
 class Agents:
-
     def __init__(self, start_state, empty_index, solution, movable):
         self.solution = solution
         self.movable = movable
@@ -23,42 +51,52 @@ class Agents:
     def contains(self, state):
         return self.explored.search(int(state))
 
-
     def next_states(self, current_node):
         new_nodes = []
-        for i in self.movable[self.empty_index]:
-            state = np.copy(current_node.state)
-            state[i], state[self.empty_index] = state[self.empty_index], state[i]
-            for i in self.explored:
-                if state == i:
-                    continue
-            self.explored.append(state)
-            new_node = Node(current_node.index, len(self.tree), state)
-            self.tree.append(new_node)
-            new_nodes.append(new_node)
+        random.shuffle(self.movable[current_node.empty_index])
+        for i in self.movable[current_node.empty_index]:
+            state = list(current_node.state)
+            state[i], state[current_node.empty_index] = state[current_node.empty_index], state[i]
+            state = ''.join(state)
+            if self.contains(state):
+                pass
+                # print('repeated')
+                # print(state)
+                # print('...')
+            else:
+                self.explored.insert(int(state))
+                new_node = Node(current_node.index, len(self.tree), state, i,
+                                current_cost=current_node.current_cost + 1, depth=current_node.depth + 1)
+                if new_node.depth > self.max_depth:
+                    self.max_depth = new_node.depth
+                self.tree.append(new_node)
+                new_nodes.append(new_node)
         return new_nodes
 
     def check_goal(self):
-        if self.current_node.state == self.solution:
+        if np.array_equal(self.current_node.state, self.solution):
             return True
         return False
 
 
-class BFS(Agents):
+class DFS(Agents):
+    def __init__(self, start_state, empty_index, solution, movable):
+        super().__init__(start_state, empty_index, solution, movable)
+        self.frontier = []
+
     def add(self, node):
         self.frontier.append(node)
 
     def empty(self):
+        print(len(self.frontier))
         if len(self.frontier) == 0:
             return False
         return True
 
     def deq(self):
-        if self.empty():
-            return
-        else:
-            node = self.frontier[0]
-            self.frontier = self.frontier[1:]
+        # if self.empty():
+        #     raise Exception("kosom da brnamg")
+        node = self.frontier.pop()
         return node
 
     def update(self):
@@ -75,13 +113,68 @@ class BFS(Agents):
         return path
 
     def work(self):
+        # points = 1
         while not self.check_goal():
             self.update()
-            self.current_node = self.deq()
+            node = self.deq()
+            self.current_node = node
+            # print(self.current_node.state, ' ', points)
+            # points +=1
 
         path = self.get_path()
         path.reverse()
+        moves = len(path)
+        return path, moves, self.max_depth
+
+
+class BFS(Agents):
+
+    def __init__(self, start_state, empty_index, solution, movable):
+        super().__init__(start_state, empty_index, solution, movable)
+        self.frontier = deque()
+
+    def add(self, node):
+        self.frontier.append(node)
+
+    def empty(self):
+        print(len(self.frontier))
+        if len(self.frontier) == 0:
+            return False
+        return True
+
+    def deq(self):
+        # if self.empty():
+        #     raise Exception("kosom da brnamg")
+        node = self.frontier.popleft()
+        return node
+
+    def update(self):
+        new_nodes = self.next_states(self.current_node)
+        for i in new_nodes:
+            self.add(i)
+
+    def get_path(self):
+        node = self.current_node
+        path = []
+        while node.index != 0:
+            path.append(node.state)
+            node = self.tree[node.parent]
         return path
+
+    def work(self):
+        # points = 0
+        self.add(self.current_node)
+        while not self.check_goal():
+            node = self.deq()
+            self.current_node = node
+            self.update()
+            # print(self.current_node.state, ' ', points)
+            # points +=1
+
+        path = self.get_path()
+        path.reverse()
+        moves = len(path)
+        return path, moves, self.max_depth
 
 
 class PriorityQueue():
@@ -109,15 +202,17 @@ class PriorityQueue():
         except IndexError:
             print()
 
+
 def string_to_int(array):
     array = list(array)
     array = ' '.join(array)
     array = np.fromstring(array, dtype=int, sep=' ')
     return array
 
+
 class AStar(Agents):
-    def __init__(self, start_state, empty_index, solution, type):
-        super().__init__(start_state, empty_index, solution)
+    def __init__(self, start_state, empty_index, solution,movable, type):
+        super().__init__(start_state, empty_index, solution, movable)
         self.frontier = PriorityQueue()
         self.type = type
 

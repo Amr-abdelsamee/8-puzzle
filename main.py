@@ -30,7 +30,7 @@ sol1 = '012345678'
 
 
 labels = ''.join(map(str, puzzle.labels))
-hmm = BFS(labels, puzzle.empty_block_index, sol1)
+hmm = BFS(labels, puzzle.empty_block_index, sol1, puzzle.valid_moves)
 start = time.time()
 path, moves, depth = hmm.work()
 end = time.time()
