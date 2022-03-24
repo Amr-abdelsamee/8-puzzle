@@ -9,19 +9,7 @@ class Node:
 
 
 class Agents:
-<<<<<<< Updated upstream
-    def __init__(self, start_state, empty_index, solution):
-        self.empty_index = empty_index
-        self.solution = solution
-        self.movable = np.array(
-            [[1, 3], [0, 4, 2], [1, 5], [0, 4, 6], [1, 3, 5, 7], [2, 4, 8], [3, 7], [4, 6, 8], [5, 7]])
-        self.root = Node(0, 0, start_state)
-        self.current_node = self.root
-        self.tree = []
-        self.tree.append(self.root)
-        self.explored = []
-        self.frontier = []
-=======
+
     def __init__(self, start_state, empty_index, solution, movable):
         self.solution = solution
         self.movable = movable
@@ -34,7 +22,7 @@ class Agents:
 
     def contains(self, state):
         return self.explored.search(int(state))
->>>>>>> Stashed changes
+
 
     def next_states(self, current_node):
         new_nodes = []
