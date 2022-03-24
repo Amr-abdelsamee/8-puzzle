@@ -5,6 +5,10 @@ from agents import BFS
 import math
 import random
 from copy import copy
+import time
+import numpy as np
+
+
 def main_menu():
     while True:
         pass
@@ -35,7 +39,7 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 #title & logo
 pygame.display.set_caption("8-puzzle")
-icon = pygame.image.load('D:\programming\python\workspace\8-puzzle\src\logo.png')
+icon = pygame.image.load('src\logo.png')
 pygame.display.set_icon(icon)
 
 #background color
@@ -51,13 +55,15 @@ states = []
 labels = []
 empty_block_index = 0
 valid_moves = []
+#labels = random.sample(range(NUM_BLOCKS), NUM_BLOCKS)
+
+labels = [1,2,5,3,0,4,6,7,8]
 
 def create_rects():
     #initial cordinates of the first block
     x = SIDES_PADDING
     y = UPPER_PADDING
     global labels
-    labels = random.sample(range(NUM_BLOCKS), NUM_BLOCKS)
     position = 0
     global empty_block_index
     for i in range(0, NUM_ROW_COL):
@@ -209,6 +215,56 @@ solution2 = copy(solution1)
 solution2.pop(0)
 solution2.append("")
 
+def string_to_int(array):
+  array = list(array)
+  array = ' '.join(array)
+  array = np.fromstring(array, dtype=int, sep=' ')
+  return array
+
+
+def replace(clicked_index, empty_index):
+
+    old_x = blocks[clicked_index].get_x_pos()
+    new_x = blocks[empty_index].get_x_pos()
+    old_y = blocks[clicked_index].get_y_pos()
+    new_y = blocks[empty_index].get_y_pos()
+
+    blocks[clicked_index].set_x_pos(new_x)
+    blocks[clicked_index].set_y_pos(new_y)
+    blocks[clicked_index].update(screen)
+
+    blocks[empty_index].set_x_pos(old_x)
+    blocks[empty_index].set_y_pos(old_y)
+    blocks[empty_index].update(screen)
+
+    temp = blocks[clicked_index]
+    blocks[clicked_index] = blocks[empty_index]
+    blocks[empty_index] = temp
+
+    # update the states
+    states.append(copy(blocks))
+    # set the new index of the empty block
+    empty_index = clicked_index
+
+    print_info()
+    return empty_index
+
+def get_replace(array2):
+    for i in range(len(array2)):
+        if array2[i] == 0:
+            return i
+
+moves = 5
+empty_index = empty_block_index
+path = ['125304678', '12534078', '120345678', '102345678', '012345678']
+pygame.display.update()
+for move in range(1, moves):
+    a1 = string_to_int(path[move-1])
+    a2 = string_to_int(path[move])
+    replaceable = get_replace(a2)
+    empty_index = replace(replaceable, empty_index)
+    pygame.display.update()
+    time.sleep(1)
 
 # running loop
 running = True
@@ -221,7 +277,7 @@ while running:
         if event.type == pygame.MOUSEBUTTONDOWN:
             x_clicked,y_clicked = pygame.mouse.get_pos()
             for i in range(len(blocks)):
-                
+
                 if blocks[i].check_clicked(x_clicked, y_clicked):
                     if not blocks[i].get_label():
                         continue
@@ -229,6 +285,8 @@ while running:
                     check_empty_near(i)
                     # print(valid_moves)
         pygame.display.update()
+
+
 
 pygame.quit()
 
