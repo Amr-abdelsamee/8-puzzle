@@ -52,7 +52,7 @@ class Puzzle:
         y = UPPER_PADDING
         position = 0
         self.labels = random.sample(range(self.num_blocks), self.num_blocks)
-        self.labels = [1,0,2,3,4,5,6,7,8]
+        # self.labels = [1,0,2,3,4,5,6,7,8]
         while not self.solvable(self.labels):
             random.shuffle(self.labels)
 
