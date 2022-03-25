@@ -124,7 +124,7 @@ class DFS(Agents):
         path = self.get_path()
         path.reverse()
         moves = len(path)
-        return path, moves, self.max_depth
+        return path, moves, self.max_depth, len(self.tree)
 
 
 class BFS(Agents):
@@ -174,7 +174,7 @@ class BFS(Agents):
         path = self.get_path()
         path.reverse()
         moves = len(path)
-        return path, moves, self.max_depth
+        return path, moves, self.max_depth, len(self.tree)
 
 
 class PriorityQueue():
@@ -243,19 +243,18 @@ class AStar(Agents):
         return path
 
     def work(self):
-        points = 0
+        # points = 0
         self.add(self.current_node)
         while not self.check_goal():
             node = self.deq()
             self.current_node = node
             self.update()
-            print(self.current_node.state, ' ', points)
-            points += 1
-
+            # print(self.current_node.state, ' ', points)
+            # points += 1
         path = self.get_path()
         path.reverse()
         moves = len(path)
-        return path, moves, self.max_depth
+        return path, moves, self.max_depth, len(self.tree)
 
     def heu(self, state, type):
         """
