@@ -6,7 +6,7 @@ import numpy as np
 import time
 from blocks import block
 
-SCREEN_WIDTH = 700
+SCREEN_WIDTH = 600
 SCREEN_HEIGHT = SCREEN_WIDTH
 SIDES_PADDING = 10
 UPPER_PADDING = 100
@@ -14,8 +14,11 @@ LOWER_PADDING = 20
 INBTWN_SPACE = 1
 
 RED = (255, 0, 0)
+vil = (123,44,130)
 WHITE = (255, 255, 255)
-BLOCK_COLOR = RED
+GREY = (150,150,150)
+BLOCK_COLOR = vil
+TEXT_COLOR = GREY
 
 
 class Puzzle:
@@ -25,21 +28,23 @@ class Puzzle:
         self.blocks = []
         self.states = []
         self.labels = []
+        self.solution = None
+        # self.solution2 = None
         self.empty_block_index = 0
         self.num_blocks = num_blocks
         self.num_row_col = int(math.sqrt(self.num_blocks))
         self.valid_moves = []
         self.states.append(copy(self.blocks))
-        
         self.BLOCK_WIDTH = (SCREEN_WIDTH - (2 * SIDES_PADDING) - (
                     self.num_row_col * INBTWN_SPACE - 1)) / self.num_row_col
         self.BLOCK_HEIGHT = (SCREEN_WIDTH - UPPER_PADDING - LOWER_PADDING - (
                     self.num_row_col * INBTWN_SPACE - 1)) / self.num_row_col
         self.FONT_SIZE = int(0.5 * self.BLOCK_WIDTH)
         self.FONT = pygame.font.SysFont('cambria', self.FONT_SIZE)
-        
+
         self.create_rects()
         self.valid_moves_generator()
+        self.solution_generator()
 
     def create_rects(self):
         # initial cordinates of the first block
@@ -47,7 +52,7 @@ class Puzzle:
         y = UPPER_PADDING
         position = 0
         self.labels = random.sample(range(self.num_blocks), self.num_blocks)
-
+        self.labels = [1,0,2,3,4,5,6,7,8]
         while not self.solvable(self.labels):
             random.shuffle(self.labels)
 
@@ -55,7 +60,7 @@ class Puzzle:
 
         for _ in range(0, self.num_row_col):
             for _ in range(0, self.num_row_col):
-                rec = block(x, y, BLOCK_COLOR, self.labels[position], position, WHITE, self.FONT, self.BLOCK_WIDTH,
+                rec = block(x, y, BLOCK_COLOR, self.labels[position], position, TEXT_COLOR, self.FONT, self.BLOCK_WIDTH,
                             self.BLOCK_HEIGHT)
                 rec.draw(self.screen)
                 self.blocks.append(rec)
@@ -63,6 +68,18 @@ class Puzzle:
                 position += 1
             x = SIDES_PADDING
             y = y + self.BLOCK_HEIGHT + INBTWN_SPACE
+
+    def solution_generator(self):
+        # solution1 if the empty block is the first one
+        self.solution = copy(self.labels)
+        self.solution.sort()
+        self.solution = list(map(str, self.solution))
+        
+        self.solution[0] = ""
+        # solution2 if the empty block is the last one
+        # self.solution2 = copy(self.solution)
+        # self.solution2.pop(0)
+        # self.solution2.append("")
 
     def valid_moves_generator(self):
         one_block_moves = []
@@ -126,7 +143,6 @@ class Puzzle:
             neighbors_indexs.append(index + self.num_row_col)
         return (copy(neighbors_indexs))
 
-
     def check_empty_near(self, clicked_index):
         if self.empty_block_index in self.valid_moves[clicked_index]:
             self.exchange(clicked_index)
@@ -158,16 +174,16 @@ class Puzzle:
 
     def check_solved(self):
         solved = True
-        for i in range(len(self.blocks)):
+        for i in range(1,len(self.blocks)):
             # print(str(blocks[i].get_label())+"_comp1_"+str(solution1[i]))
-            if self.blocks[i].get_label() != self.solution1[i]:
+            if self.blocks[i].get_label() != self.solution[i]:
                 solved = False
-        if solved: return solved
-        solved = True
-        for i in range(len(self.blocks)):
-            # print(str(blocks[i].get_label())+"_comp2_"+str(solution2[i]))
-            if self.blocks[i].get_label() != self.solution2[i]:
-                solved = False
+        # if solved: return solved
+        # solved = True
+        # for i in range(len(self.blocks)):
+        #     # print(str(blocks[i].get_label())+"_comp2_"+str(solution2[i]))
+        #     if self.blocks[i].get_label() != self.solution2[i]:
+        #         solved = False
         return solved
 
     def show_steps(self):
