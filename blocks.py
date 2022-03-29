@@ -2,6 +2,7 @@ import pygame
 
 class block:
     def __init__(self, x_pos, y_pos, color, label, position, text_color, FONT, width, height):
+        
         self.x_pos = x_pos
         self.y_pos = y_pos
         self.color = color
@@ -14,16 +15,18 @@ class block:
         self.rect = pygame.Rect(self.x_pos, self.y_pos, self.width, self.height)
         self.text = FONT.render(self.label, True, self.text_color)
         
-        
+    # draw used to draw the block
     def draw(self, screen):
         pygame.draw.rect(screen, self.color, self.rect)
         # screen.blit(self.text, (self.x_pos+int(self.size/2), self.y_pos+int(self.size/2)))
         screen.blit(self.text, (self.x_pos, self.y_pos))
     
+    # update used to update the block place called when exchange happens
     def update(self,screen):
         self.rect = pygame.Rect(self.x_pos, self.y_pos, self.width, self.height)
         self.draw(screen)
 
+    # check_clicked checks if the mouse click was on the block 
     def check_clicked(self, x_clicked , y_clicked):
         if( x_clicked >= self.x_pos 
         and x_clicked < self.x_pos + self.width
@@ -31,6 +34,8 @@ class block:
         and y_clicked < self.y_pos + self.height):
             return True
         
+    
+    # getters and setters for the class
     def get_label(self):
         return self.label
     

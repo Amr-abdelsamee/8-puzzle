@@ -1,5 +1,5 @@
+import heapq
 import numpy as np
-import random
 from collections import deque
 
 
@@ -31,51 +31,51 @@ class Hashmap:
                 return True
         return False
 
-
 # Class Node with all required node data to form a tree
 class Node:
     def __init__(self, parent, index, state, empty_index, cost=0, current_cost=0, depth=0):
-        self.state = state  # State in string form
-        self.parent = parent  # Parent index in tree array
-        self.index = index  # Node index in tree
-        self.empty_index = empty_index  # The zero index in the state
-        self.cost = cost  # Cost to be used by A*
-        self.current_cost = current_cost  # Actual cost to reach this node (Depth)
+        self.state = state 
+        self.parent = parent
+        self.index = index
+        self.empty_index = empty_index
+        self.cost = cost
+        self.current_cost = current_cost
+        self.depth = depth
+
+    def __lt__(self,other):
+        return self.cost < other.cost
 
 
 # Class Agents which all other agents inherit from
 class Agents:
     def __init__(self, start_state, empty_index, solution, movable):
-        self.solution = solution  # Solution is set to be changeable
-        self.movable = movable  # Movable array of arrays for each index of zero
-        self.root = Node(0, 0, start_state, empty_index)  # Initial state node
-        self.current_node = Node(0, 0, start_state, empty_index)  # First node to be used
-        self.tree = []  # Empty tree array
-        self.tree.append(self.root)  # Append the root to tree
-        self.explored = Hashmap(10000)  # Creating explored as hashmap object
-        self.max_depth = 0  # Depth of deepest leaf
+        self.solution = solution
+        self.movable = movable
+        self.root = Node(0, 0, start_state, empty_index)
+        self.current_node = Node(0, 0, start_state, empty_index)
+        self.tree = []
+        self.tree.append(self.root)
+        self.explored = set()
+        self.max_depth = 0
 
     # Check if a node with this state is already created
     def contains(self, state):
-        return self.explored.search(int(state))
+        return state in self.explored
 
     # Method to create children of current node
     def next_states(self, current_node):
-        new_nodes = []  # Array to hold new nodes
-        random.shuffle(self.movable[current_node.empty_index])  # Randomize which index chooses to replace with first
+        new_nodes = [] # Array to hold new nodes
         for i in self.movable[current_node.empty_index]:
-            state = list(current_node.state)  # List of current state to be swapped
+            state = list(current_node.state) # List of current state to be swapped
             state[i], state[current_node.empty_index] = state[current_node.empty_index], state[i]
-            state = ''.join(state)  # Restore state to string
-            if self.contains(state):
-                pass  # If state is existing do nothing
-            else:
-                self.explored.insert(int(state))  # Insert state in explored then create node ti
+            state = ''.join(state) # Restore state to string
+            if  not self.contains(state): # If state is not explored
+                self.explored.add(state) # Insert state in explored then create node for it
                 new_node = Node(current_node.index, len(self.tree), state, i,
-                                current_cost=current_node.current_cost + 1)
-                if new_node.current_cost > self.max_depth:
-                    self.max_depth = new_node.current_cost
-                self.tree.append(new_node)  # Add node to tree
+                                current_cost=current_node.current_cost + 1, depth=current_node.depth + 1)
+                if new_node.depth > self.max_depth:
+                    self.max_depth = new_node.depth
+                self.tree.append(new_node) # Add node to parent tree
                 new_nodes.append(new_node)
         return new_nodes
 
@@ -84,7 +84,6 @@ class Agents:
         if np.array_equal(self.current_node.state, self.solution):
             return True
         return False
-
 
 # DFS Agent
 class DFS(Agents):
@@ -98,7 +97,7 @@ class DFS(Agents):
         self.frontier.append(node)
 
     # Pop from frontier
-    def pop(self):
+    def deq(self):
         node = self.frontier.pop()
         return node
 
@@ -108,7 +107,7 @@ class DFS(Agents):
         for i in new_nodes:
             self.add(i)
 
-    # Method to get path by back tracking after reaching goal
+    # Method to get path by back tracking through the parent tree after reaching goal
     def get_path(self):
         node = self.current_node
         path = []
@@ -117,20 +116,23 @@ class DFS(Agents):
             node = self.tree[node.parent]
         return path
 
-    # Work function to run the agent
+    # Work function to start the search
     def work(self):
-        while not self.check_goal():
-            self.update()
-            node = self.pop()
+        self.add(self.current_node)
+        while self.frontier:
+            node = self.deq()
             self.current_node = node
-
+            if self.check_goal():
+                break
+            self.update()
         path = self.get_path()
         path.reverse()
         moves = len(path)
-        return path, moves, self.max_depth, len(self.tree)
+        return path, moves, self.max_depth , len(self.explored)
 
-
+# BFS Agent
 class BFS(Agents):
+
     # Add frontier to initialization
     def __init__(self, start_state, empty_index, solution, movable):
         super().__init__(start_state, empty_index, solution, movable)
@@ -151,7 +153,7 @@ class BFS(Agents):
         for i in new_nodes:
             self.add(i)
 
-    # Method to get path by back tracking after reaching goal
+    # Method to get path by back tracking through the parent tree after reaching goal
     def get_path(self):
         node = self.current_node
         path = []
@@ -160,48 +162,20 @@ class BFS(Agents):
             node = self.tree[node.parent]
         return path
 
-    # Work function to run the agent
+    # Work function to start the search
     def work(self):
-        # points = 0
+
         self.add(self.current_node)
-        while not self.check_goal():
+        while self.frontier:
             node = self.deq()
             self.current_node = node
+            if self.check_goal():
+                break
             self.update()
-            # print(self.current_node.state, ' ', points)
-            # points +=1
-
         path = self.get_path()
         path.reverse()
         moves = len(path)
-        return path, moves, self.max_depth, len(self.tree)
-
-
-# Priority Queue class to be used by A* agent
-class PriorityQueue:
-    def __init__(self):
-        self.queue = []
-
-    # for checking if the queue is empty
-    def isEmpty(self):
-        return len(self.queue) == 0
-
-    # for inserting an element in the queue
-    def enter(self, node):
-        self.queue.append(node)
-
-    # for popping an element based on Priority (Lowest Cost)
-    def pop(self):
-        try:
-            min = 0
-            for i in range(len(self.queue)):
-                if self.queue[i].cost < self.queue[min].cost:
-                    min = i
-            item = self.queue[min]
-            del self.queue[min]
-            return item
-        except IndexError:
-            print()
+        return path, moves, self.max_depth , len(self.explored)
 
 
 # Convert String state to integer array
@@ -214,20 +188,19 @@ def string_to_int(array):
 
 class AStar(Agents):
     # Add frontier to initialization and type of heuristic
-    def __init__(self, start_state, empty_index, solution, movable, type):
+    def __init__(self, start_state, empty_index, solution,movable, type):
         super().__init__(start_state, empty_index, solution, movable)
-        self.frontier = PriorityQueue()
+        self.frontier = []
         self.type = type
 
     # Add to frontier
     def add(self, node):
         node.cost = self.heu(node.state, self.type) + self.current_node.current_cost
-        self.frontier.enter(node)
+        heapq.heappush(self.frontier,node)
 
     # Pop from frontier
-    def pop(self):
-        node = self.frontier.pop()
-        return node
+    def deq(self):
+        return heapq.heappop(self.frontier)
 
     # Update method to get children of node
     def update(self):
@@ -235,7 +208,7 @@ class AStar(Agents):
         for i in new_nodes:
             self.add(i)
 
-    # Method to get path by back tracking after reaching goal
+    # Method to get path by back tracking through the parent tree after reaching goal
     def get_path(self):
         node = self.current_node
         path = []
@@ -244,26 +217,28 @@ class AStar(Agents):
             node = self.tree[node.parent]
         return path
 
-    # Work function to run the agent
+    # Work function to start the search
     def work(self):
-        # points = 0
         self.add(self.current_node)
-        while not self.check_goal():
-            node = self.pop()
+        while self.frontier:
+            node = self.deq()
             self.current_node = node
+            if self.check_goal():
+                break
             self.update()
-            # print(self.current_node.state, ' ', points)
-            # points += 1
         path = self.get_path()
         path.reverse()
         moves = len(path)
-        return path, moves, self.max_depth, len(self.tree)
+        return path, moves, self.max_depth , len(self.explored)
 
     # Method calculates heuristics for a given state
     def heu(self, state, type):
+        """
+        calculates heuristics for a given state
+        """
         state = string_to_int(state)
         sum = 0
-        if type == 1:           # Manhattan distance
+        if type == 1:               # Manhattan distance
             for i in range(3):
                 for j in range(3):
                     num = state[i * 3 + j]
@@ -272,7 +247,7 @@ class AStar(Agents):
                     x = (num % 3) - j
                     y = (num // 3) - i
                     sum += abs(x) + abs(y)
-        else:               # Euclidean distance
+        else:                       # Euclidean distance
             for i in range(3):
                 for j in range(3):
                     num = state[i * 3 + j]
@@ -282,3 +257,9 @@ class AStar(Agents):
                     y = (num // 3) - i
                     sum += np.sqrt((x ** 2) + (y ** 2))
         return sum
+
+    # def decreaseKey(self,parent,cost,index):
+    #     state = self.frontier[index]
+    #     if state.cost > cost:
+    #         state.cost = cost
+    #         state.parent = parent

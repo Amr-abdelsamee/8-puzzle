@@ -6,6 +6,7 @@ import numpy as np
 import time
 from blocks import block
 
+# screen constants
 SCREEN_WIDTH = 600
 SCREEN_HEIGHT = SCREEN_WIDTH
 SIDES_PADDING = 10
@@ -13,12 +14,9 @@ UPPER_PADDING = 100
 LOWER_PADDING = 20
 INBTWN_SPACE = 1
 
-RED = (255, 0, 0)
-vil = (123,44,130)
-WHITE = (255, 255, 255)
-GREY = (150,150,150)
-BLOCK_COLOR = vil
-TEXT_COLOR = GREY
+# blocks constants
+BLOCK_COLOR = (150,150,150)
+TEXT_COLOR = (0, 0, 0)
 
 
 class Puzzle:
@@ -28,16 +26,16 @@ class Puzzle:
         self.blocks = []
         self.states = []
         self.labels = []
-        self.solution = None
-        # self.solution2 = None
+        self.solution = []
         self.empty_block_index = 0
         self.num_blocks = num_blocks
         self.num_row_col = int(math.sqrt(self.num_blocks))
         self.valid_moves = []
         self.states.append(copy(self.blocks))
+        # calculate the block width and height depending on the screen width and height
         self.BLOCK_WIDTH = (SCREEN_WIDTH - (2 * SIDES_PADDING) - (
                     self.num_row_col * INBTWN_SPACE - 1)) / self.num_row_col
-        self.BLOCK_HEIGHT = (SCREEN_WIDTH - UPPER_PADDING - LOWER_PADDING - (
+        self.BLOCK_HEIGHT = (SCREEN_HEIGHT - UPPER_PADDING - LOWER_PADDING - (
                     self.num_row_col * INBTWN_SPACE - 1)) / self.num_row_col
         self.FONT_SIZE = int(0.5 * self.BLOCK_WIDTH)
         self.FONT = pygame.font.SysFont('cambria', self.FONT_SIZE)
@@ -46,13 +44,18 @@ class Puzzle:
         self.valid_moves_generator()
         self.solution_generator()
 
+# create_rects creates the blocks of the game
     def create_rects(self):
         # initial cordinates of the first block
         x = SIDES_PADDING
         y = UPPER_PADDING
         position = 0
+
+        # self.labels = [8, 2, 1,5, 4, 6,0, 3, 7]
+        # if not self.solvable(self.labels):
+        #     print("This state cannot be solved")
+        
         self.labels = random.sample(range(self.num_blocks), self.num_blocks)
-        # self.labels = [1,0,2,3,4,5,6,7,8]
         while not self.solvable(self.labels):
             random.shuffle(self.labels)
 
@@ -69,26 +72,19 @@ class Puzzle:
             x = SIDES_PADDING
             y = y + self.BLOCK_HEIGHT + INBTWN_SPACE
 
+# solution_generator generate the solution depending on the numbers of blocks
     def solution_generator(self):
-        # solution1 if the empty block is the first one
-        self.solution = copy(self.labels)
-        self.solution.sort()
-        self.solution = list(map(str, self.solution))
-        
-        self.solution[0] = ""
-        # solution2 if the empty block is the last one
-        # self.solution2 = copy(self.solution)
-        # self.solution2.pop(0)
-        # self.solution2.append("")
+        for i in range(self.num_blocks):
+            self.solution.append(str(i))
 
+# valid_moves_generator get the valid moves of each block 
     def valid_moves_generator(self):
         one_block_moves = []
         for i in range(0, self.num_blocks):
-            # one_block_moves = get_neighbors_index(i)
             one_block_moves = self.get_neighbors_index(i)
             self.valid_moves.append(one_block_moves)
-        print(self.valid_moves)
 
+# get_neighbors_index helps the valid_moves_generator function by returning the valed places for a given index
     def get_neighbors_index(self, index):
         neighbors_indexs = []
         # check if in upper left corners
@@ -143,10 +139,12 @@ class Puzzle:
             neighbors_indexs.append(index + self.num_row_col)
         return (copy(neighbors_indexs))
 
+# check_empty_near check if the blanck block is near the clicked  block
     def check_empty_near(self, clicked_index):
         if self.empty_block_index in self.valid_moves[clicked_index]:
             self.exchange(clicked_index)
 
+# exchange the blanck with the clicked index
     def exchange(self, clicked_index):
         empty_block_index = self.empty_block_index
 
@@ -172,27 +170,21 @@ class Puzzle:
         # set the new index of the empty block
         self.empty_block_index = clicked_index
 
+# check_solved checks if the puzzle is solved
     def check_solved(self):
         solved = True
         for i in range(1,len(self.blocks)):
             # print(str(blocks[i].get_label())+"_comp1_"+str(solution1[i]))
             if self.blocks[i].get_label() != self.solution[i]:
                 solved = False
-        # if solved: return solved
-        # solved = True
-        # for i in range(len(self.blocks)):
-        #     # print(str(blocks[i].get_label())+"_comp2_"+str(solution2[i]))
-        #     if self.blocks[i].get_label() != self.solution2[i]:
-        #         solved = False
         return solved
 
-    def show_steps(self):
-        print("moves record:")
-        for i in range(len(self.states)):
-            for j in range(len(self.blocks)):
-                print(self.states[i][j].get_label(), end=" ")
-            print()
+# solvable checks if the generated array is solvable
+    def solvable(self, array):
+        inversions = self.getInvCount(array)
+        return inversions % 2 == 0
 
+# getInvCount called by solvable function
     def getInvCount(self, arr):
         inversions = 0
         empty_value = 0
@@ -202,16 +194,14 @@ class Puzzle:
                     inversions += 1
         return inversions
 
-    def solvable(self, array):
-        inversions = self.getInvCount(array)
-        return inversions % 2 == 0
-
+# get the index of the blanck block
     def get_zero(self, array):
         for i in range(len(array)):
             if array[i] == 0:
                 return i
         return -1
 
+# show_solution is used to print the solution when the AI solve the puzzle
     def show_solution(self, moves, delay, path):
         for move in range(moves):
             a2 = self.string_to_int(path[move])
@@ -220,8 +210,13 @@ class Puzzle:
             pygame.display.update()
             time.sleep(delay)
 
+# string_to_int is used to convert from string to ints
     def string_to_int(self, array):
         array = list(array)
         array = ' '.join(array)
         array = np.fromstring(array, dtype=int, sep=' ')
         return array
+
+
+
+
